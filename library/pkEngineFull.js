@@ -22,6 +22,7 @@ const pkEngine = {
             this.name = _name;
             this.gameScreenContext = _gameScreenContext || null;
             this.nestedObjects = [];
+            this.components = [];
         }
         addNestedObject(_object) {
             _object.scene = this;
@@ -104,7 +105,14 @@ const pkEngine = {
                     this.velocity.x += force.x / this.mass;
                     this.velocity.y += force.y / this.mass;
                 };
-                this.simulatePathForCollision = function () {
+                this.simulatePathForCollision = function (_movingObject, _path, _targetObject) {
+                    let pathStart = _path.startPosition;
+                    let pathEnd = _path.endPosition;
+                    let pathDirection = {
+                        x: pathEnd.x - pathStart.x,
+                        y: pathEnd.y - pathStart.y
+                    };
+                    // Check for intersection
 
                 };
             } else if (type == 'boxCollider') {
