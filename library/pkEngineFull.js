@@ -82,7 +82,7 @@ const pkEngine = {
                     if (this.parentContext.boxCollider) {
                         this.parentContext.scene.nestedObjects.forEach((nestedObject) => {
                             if (nestedObject.boxCollider) {
-                                let simulation = this.simulatePathForCollision(this, { startPosition: this.parentContext.position, endPosition: this.endPosition }, nestedObject);
+                                let simulation = this.simulatePathForCollision(this.parentContext, { startPosition: this.parentContext.position, endPosition: this.endPosition }, nestedObject);
                                 if (simulation.collided) { // Check for collisions with other colliders in the same scene
                                     this.parentContext.position.x = simulation.newEndPosition.x;
                                     this.parentContext.position.y = simulation.newEndPosition.y;
@@ -114,15 +114,51 @@ const pkEngine = {
                     };
                     // Check for intersection
 
+                    let targetObjectEdges = {
+                        top: _targetObject.position.y + _targetObject.boxCollider.halfExtents.y,
+                        bottom: _targetObject.position.y - _targetObject.boxCollider.halfExtents.y,
+                        left: _targetObject.position.x - _targetObject.boxCollider.halfExtents.x,
+                        right: _targetObject.position.x + _targetObject.boxCollider.halfExtents.x
+                    };
+                    let pathLength = Math.sqrt(pathDirection.x * pathDirection.x + pathDirection.y * pathDirection.y);
+                    for (let i = 0; i < pathLength+1; i += 1) {
+                        let t = i / pathLength;
+                        let simulatedPosition = {
+                            x: pathStart.x + pathDirection.x * t,
+                            y: pathStart.y + pathDirection.y * t
+                        };
+                        let movingObjectEdges = {
+                            top: simulatedPosition.y + _movingObject.boxCollider.halfExtents.y,
+                            bottom: simulatedPosition.y - _movingObject.boxCollider.halfExtents.y,
+                            left: simulatedPosition.x - _movingObject.boxCollider.halfExtents.x,
+                            right: simulatedPosition.x + _movingObject.boxCollider.halfExtents.x
+                        };
+                        // Check if the simulated position intersects with the target object's collider
+                        if ((simulatedPosition.right < targetObjectEdges.left || movingObjectEdges.left > targetObjectEdges.right) ||
+                            (movingObjectEdges.bottom > targetObjectEdges.top || movingObjectEdges.top < targetObjectEdges.bottom)) {
+
+                        } else {
+                            // Collision detected
+                            return {
+                                collided: true,
+                                newEndPosition: {
+                                    x: simulatedPosition.x,
+                                    y: simulatedPosition.y
+                                },
+                                collisionObject: _targetObject
+                            };
+                        }
+                    }
+
                 };
             } else if (type == 'boxCollider') {
-                this.extents = _options.extents || { x: 1, y: 1 };
+                this.halfExtents = _options.halfExtents || { x: 1, y: 1 };
                 // this.friction = _options.friction || 0.5;
                 this.restitution = _options.restitution || 0.5;
                 this.parentContext.boxCollider = this;
 
                 this.update = function () {
-                    
+
                 };
 
                 this.handleCollision = function (_collisionInfoObject) {
